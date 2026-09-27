@@ -1,0 +1,15 @@
+# Downloaded data (re-create with `python -m forecaster download`)
+data/
+
+# Training outputs, except the chart, which the README displays
+outputs/*
+!outputs/forecast_vs_actual.png
+
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+.vscode/
