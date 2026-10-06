@@ -1,0 +1,75 @@
+// DAX measures for the Ontario demand forecast report.
+//
+// These expect the table to be called Forecast (see power_query.m).
+// Power BI takes one measure at a time: select the Forecast table, click
+// "New measure", paste one block, press Enter, then set the format noted above it.
+//
+// abs_pct_error and baseline_abs_pct_error are stored as fractions (0.034 = 3.4%),
+// so the percentage measures only need the Percentage format, not a x100.
+
+
+// ---- Headline measures ------------------------------------------------------
+
+// The model's average error (MAPE): on average, how far off each hourly
+// prediction is, as a share of the real demand.
+// Format: Percentage, 2 decimals.
+Avg Abs Error % = AVERAGE ( Forecast[abs_pct_error] )
+
+// The same thing for the baseline guess, "same hour yesterday".
+// Format: Percentage, 2 decimals.
+Baseline Avg Abs Error % = AVERAGE ( Forecast[baseline_abs_pct_error] )
+
+// How much smaller the model's average % error is than the baseline's.
+// DIVIDE returns blank instead of an error if the baseline is 0 or missing.
+// Format: Percentage, 2 decimals.
+Improvement vs Baseline % =
+DIVIDE (
+    [Baseline Avg Abs Error %] - [Avg Abs Error %],
+    [Baseline Avg Abs Error %]
+)
+
+// The hour of day (0-23, hour beginning, EST) with the largest average % error.
+// Builds a 24-row table of average error per hour, keeps the worst row, and
+// returns its hour. Ties go to the earlier hour. Respects slicers, so it shows
+// the worst hour for whatever dates are selected.
+// Format: Whole number.
+Peak-Error Hour =
+VAR ErrorByHour =
+    ADDCOLUMNS ( VALUES ( Forecast[hour] ), "@AvgError", [Avg Abs Error %] )
+VAR Worst =
+    TOPN ( 1, ErrorByHour, [@AvgError], DESC, Forecast[hour], ASC )
+RETURN
+    MAXX ( Worst, Forecast[hour] )
+
+
+// ---- Megawatt versions (these match the README and the Streamlit dashboard) --
+
+// Average miss in MW (MAE).
+// Format: Whole number, thousands separator.
+Avg Miss MW = AVERAGE ( Forecast[abs_error_mw] )
+
+// Average miss in MW for the baseline.
+// Format: Whole number, thousands separator.
+Baseline Avg Miss MW = AVERAGE ( Forecast[baseline_abs_error_mw] )
+
+// How much smaller the model's average MW miss is than the baseline's. This is
+// the README's "23% smaller" figure. It differs from Improvement vs Baseline %
+// because a MW miss counts the same at any demand level, while a % miss
+// counts for more when demand is low.
+// Format: Percentage, 2 decimals.
+Improvement vs Baseline (MW) % =
+DIVIDE ( [Baseline Avg Miss MW] - [Avg Miss MW], [Baseline Avg Miss MW] )
+
+// Number of hours in the current selection.
+// Format: Whole number, thousands separator.
+Hours Tested = COUNTROWS ( Forecast )
+
+
+// ---- For the line chart -----------------------------------------------------
+
+// AVERAGE rather than SUM, so the lines still read in MW if the chart is ever
+// rolled up from hours to days or months.
+// Format: Whole number, thousands separator.
+Actual MW = AVERAGE ( Forecast[actual_mw] )
+
+Predicted MW = AVERAGE ( Forecast[predicted_mw] )
