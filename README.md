@@ -73,17 +73,21 @@ Run it after `train`; the files it writes are also committed in `bi/`.
     with a conditional-format colour scale.
   - **Peak week:** an Excel chart of real vs predicted demand for the week of the
     year's highest demand.
-- `bi/power_bi/`: what is needed to build a Power BI report from the CSV: the Power
-  Query steps (`power_query.m`), the DAX measures (`measures.dax`), and a click-by-click
-  guide with the values each KPI should show (`BUILD_GUIDE.md`).
+- `bi/power_bi/forecast_report.pbix`: a Power BI report built from the CSV, with KPI
+  cards, a date slicer, a line chart of real vs predicted demand, and an hour-by-month
+  error heatmap.
+- `bi/power_bi/`: everything needed to rebuild that report: the Power Query steps
+  (`power_query.m`), the DAX measures (`measures.dax`), and a click-by-click guide with
+  the values each KPI should show (`BUILD_GUIDE.md`).
 
-The workbook's formulas were recalculated in Excel and match the results above. The
-Summary sheet reports the improvement over the baseline two ways: 23% measured in MW
-(the figure used in Results) and 26% measured as a percentage of demand.
+The workbook's formulas were recalculated in Excel, and the Power BI report's KPIs and
+heatmap cells were checked against the guide's list; both match the results above. The
+improvement over the baseline is reported two ways: 23% measured in MW (the figure used
+in Results) and 26% measured as a percentage of demand.
+
+![Power BI report: KPI cards, date slicer, real vs predicted demand, and error heatmap](docs/images/powerbi-dashboard.png)
 
 ![Excel heatmap of average error by hour and month](docs/images/excel-heatmap.png)
-
-*Power BI dashboard screenshot: to be added once the report has been built from the guide.*
 
 ## How it works
 
