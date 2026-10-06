@@ -57,6 +57,34 @@ To run the tests: `python -m pytest`
 
 To explore the data, open `notebooks/01_explore_data.ipynb`.
 
+## BI reporting (Excel + Power BI)
+
+`python export_for_bi.py` turns the 2025 test results into files for Excel and Power BI.
+Run it after `train`; the files it writes are also committed in `bi/`.
+
+- `bi/forecast_results.csv`: one row per tested hour (8,751 rows) with the real demand,
+  the model's prediction, the "same hour yesterday" guess, both errors in MW and in %,
+  the hour, month and weekday, and the temperature.
+- `bi/forecast_results.xlsx`: the same rows as an Excel Table, plus three sheets built
+  on it:
+  - **Summary:** average error overall, by month and by hour, and the improvement over
+    the baseline, all as live formulas (`AVERAGEIFS`, `COUNTIFS`, `INDEX`/`MATCH`).
+  - **Heatmap:** average error for every hour of the day in every month, as formulas
+    with a conditional-format colour scale.
+  - **Peak week:** an Excel chart of real vs predicted demand for the week of the
+    year's highest demand.
+- `bi/power_bi/`: what is needed to build a Power BI report from the CSV: the Power
+  Query steps (`power_query.m`), the DAX measures (`measures.dax`), and a click-by-click
+  guide with the values each KPI should show (`BUILD_GUIDE.md`).
+
+The workbook's formulas were recalculated in Excel and match the results above. The
+Summary sheet reports the improvement over the baseline two ways: 23% measured in MW
+(the figure used in Results) and 26% measured as a percentage of demand.
+
+![Excel heatmap of average error by hour and month](docs/images/excel-heatmap.png)
+
+*Power BI dashboard screenshot: to be added once the report has been built from the guide.*
+
 ## How it works
 
 - **Data:** yearly hourly demand files from IESO, and hourly temperature from the
@@ -83,6 +111,7 @@ To explore the data, open `notebooks/01_explore_data.ipynb`.
 
 ```
 app.py                  Streamlit dashboard
+export_for_bi.py        writes the Excel and Power BI files in bi/
 forecaster/
     config.py           settings (years, test period, weather location)
     data.py             download and clean the IESO and weather data
@@ -90,6 +119,7 @@ forecaster/
     models.py           time-based split, simple guesses, XGBoost model
     evaluate.py         error scores and feature importance
     pipeline.py         the full training run
+bi/                     Excel workbook, CSV, and Power BI build files
 notebooks/              data exploration
 tests/                  unit tests
 docs/images/            screenshots used in this README
